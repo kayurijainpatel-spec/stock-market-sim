@@ -1,0 +1,499 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#app{font-family:var(--font-sans);padding:1.25rem;max-width:900px;margin:0 auto}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.screen{display:none}.screen.active{display:block}
+.top-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:1rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:3px}
+.metric-value{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.metric-value.up{color:#3B6D11}.metric-value.down{color:#A32D2D}
+.main-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.04em}
+.chart-wrap{position:relative;height:200px}
+.stock-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
+.stock-row:last-child{border-bottom:none}
+.stock-row:hover{background:var(--color-background-secondary);margin:0 -8px;padding:6px 8px;border-radius:var(--border-radius-md)}
+.stock-ticker{font-size:13px;font-weight:500;width:42px;color:var(--color-text-primary)}
+.stock-name{font-size:12px;color:var(--color-text-secondary);flex:1}
+.stock-sector{font-size:11px;padding:2px 6px;border-radius:4px;margin-right:4px}
+.stock-price{font-size:13px;font-weight:500;width:52px;text-align:right;color:var(--color-text-primary)}
+.stock-chg{font-size:12px;width:48px;text-align:right}
+.stock-bars{width:44px}
+.trade-panel{display:flex;flex-direction:column;gap:8px}
+.selected-stock{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.qty-row{display:flex;align-items:center;gap:8px}
+.qty-row label{font-size:13px;color:var(--color-text-secondary);white-space:nowrap}
+.qty-row input{width:70px;padding:4px 8px;font-size:14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)}
+.btn-buy{padding:8px 0;width:100%;font-size:14px;font-weight:500;border-radius:var(--border-radius-md);border:1.5px solid #3B6D11;color:#3B6D11;background:transparent;cursor:pointer;font-family:var(--font-sans)}
+.btn-sell-s{padding:8px 0;width:100%;font-size:14px;font-weight:500;border-radius:var(--border-radius-md);border:1.5px solid #A32D2D;color:#A32D2D;background:transparent;cursor:pointer;font-family:var(--font-sans)}
+.btn-buy:hover{background:#EAF3DE}.btn-sell-s:hover{background:#FCEBEB}
+@media(prefers-color-scheme:dark){.btn-buy:hover{background:#173404}.btn-sell-s:hover{background:#501313}}
+.btn-next{width:100%;padding:10px;font-size:14px;font-weight:500;border-radius:var(--border-radius-md);border:1.5px solid #185FA5;color:#185FA5;background:transparent;cursor:pointer;font-family:var(--font-sans);margin-top:4px}
+.btn-next:hover{background:#E6F1FB}
+@media(prefers-color-scheme:dark){.btn-next:hover{background:#042C53}}
+.holdings-table{width:100%;font-size:12px;border-collapse:collapse}
+.holdings-table td{padding:5px 4px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.holdings-table tr:last-child td{border-bottom:none}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:var(--border-radius-md);margin-bottom:.75rem}
+.news-item{font-size:13px;line-height:1.5;color:var(--color-text-secondary);padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.news-item:last-child{border-bottom:none}
+.news-item strong{font-weight:500;color:var(--color-text-primary)}
+.flash{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.6rem .9rem;font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;min-height:36px}
+.divider-row{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:12px}
+.progress-bar-wrap{background:var(--color-border-tertiary);border-radius:4px;height:4px;margin-bottom:1rem}
+.progress-bar-fill{height:4px;border-radius:4px;background:#185FA5;transition:width .4s}
+.final-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:1.25rem}
+.lesson-box{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem;margin-bottom:10px}
+.lesson-box h3{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.lesson-box p{font-size:13px;color:var(--color-text-secondary);line-height:1.55}
+.btn-restart{width:100%;padding:10px;font-size:14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);background:transparent;cursor:pointer;font-family:var(--font-sans)}
+.sector-tag-tech{background:#E6F1FB;color:#0C447C}
+.sector-tag-energy{background:#FAEEDA;color:#633806}
+.sector-tag-health{background:#E1F5EE;color:#085041}
+.sector-tag-consumer{background:#FBEAF0;color:#72243E}
+.sector-tag-finance{background:#EEEDFE;color:#3C3489}
+@media(prefers-color-scheme:dark){
+.sector-tag-tech{background:#042C53;color:#85B7EB}
+.sector-tag-energy{background:#412402;color:#FAC775}
+.sector-tag-health{background:#04342C;color:#9FE1CB}
+.sector-tag-consumer{background:#4B1528;color:#F4C0D1}
+.sector-tag-finance{background:#26215C;color:#AFA9EC}
+}
+.trade-cost{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+.owned-badge{font-size:11px;background:var(--color-background-info);color:var(--color-text-info);padding:1px 6px;border-radius:4px}
+</style>
+
+<div id="app">
+<h2 class="sr-only">Stock market trading simulation — manage a $10,000 portfolio across 8 economic cycles, buying and selling shares across 10 stocks in 5 sectors.</h2>
+
+<div id="screen-intro" class="screen active">
+  <div style="max-width:560px;margin:2rem auto;text-align:center">
+    <div style="font-size:26px;font-weight:500;color:var(--color-text-primary);margin-bottom:.75rem">Market simulator</div>
+    <div style="font-size:15px;color:var(--color-text-secondary);line-height:1.7;margin-bottom:2rem">You have <strong style="color:var(--color-text-primary)">$10,000</strong> and 8 quarters to grow it. Each quarter brings new economic conditions — a recession, a tech boom, a rate hike — that hit different sectors differently. Buy low, sell high, diversify wisely.</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem;text-align:left">
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.85rem">
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:3px">Shares</div>
+        <div style="font-size:15px;font-weight:500;color:var(--color-text-primary)">10 stocks</div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">across 5 sectors</div>
+      </div>
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.85rem">
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:3px">Rounds</div>
+        <div style="font-size:15px;font-weight:500;color:var(--color-text-primary)">8 quarters</div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">~2 years</div>
+      </div>
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.85rem">
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:3px">Goal</div>
+        <div style="font-size:15px;font-weight:500;color:var(--color-text-primary)">Beat $12,000</div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">20% return</div>
+      </div>
+    </div>
+    <button onclick="startGame()" style="width:100%;padding:14px;font-size:16px;font-weight:500;border-radius:var(--border-radius-md);border:none;background:#185FA5;color:#fff;cursor:pointer;font-family:var(--font-sans)">Open the market</button>
+  </div>
+</div>
+
+<div id="screen-game" class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+    <div style="font-size:13px;color:var(--color-text-secondary)">Quarter <span id="q-num">1</span> of 8</div>
+    <div id="phase-badge" class="phase-badge"></div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill" style="width:12.5%"></div></div>
+  <div class="top-bar">
+    <div class="metric"><div class="metric-label">Cash</div><div class="metric-value" id="m-cash">$10,000</div></div>
+    <div class="metric"><div class="metric-label">Portfolio value</div><div class="metric-value" id="m-portfolio">$10,000</div></div>
+    <div class="metric"><div class="metric-label">Total return</div><div class="metric-value" id="m-return">+0.0%</div></div>
+    <div class="metric"><div class="metric-label">Diversification</div><div class="metric-value" id="m-divers">--</div></div>
+  </div>
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title">Market — select a stock to trade</div>
+      <div id="stock-list"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-title">Trade</div>
+        <div id="trade-panel">
+          <div style="font-size:13px;color:var(--color-text-secondary)">Select a stock from the list to trade.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">News this quarter</div>
+        <div id="news-panel"></div>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:12px">
+    <div class="card">
+      <div class="card-title">Your holdings</div>
+      <div id="holdings-panel"><div style="font-size:13px;color:var(--color-text-secondary)">No positions yet.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Portfolio chart</div>
+      <div class="chart-wrap"><canvas id="portfolio-chart" role="img" aria-label="Portfolio value over time">Portfolio value history.</canvas></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px">
+    <div class="flash" id="flash-msg" style="flex:1">Select a stock above to begin trading.</div>
+    <button class="btn-next" id="btn-advance" onclick="advanceQuarter()">End quarter &rarr;</button>
+  </div>
+</div>
+
+<div id="screen-results" class="screen">
+  <div style="font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:1.25rem">Final results</div>
+  <div class="final-grid">
+    <div class="metric"><div class="metric-label">Final value</div><div class="metric-value" id="r-final"></div></div>
+    <div class="metric"><div class="metric-label">Total return</div><div class="metric-value" id="r-return"></div></div>
+    <div class="metric"><div class="metric-label">vs. S&P 500 (+14%)</div><div class="metric-value" id="r-vs-sp"></div></div>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title">Portfolio value over time</div>
+    <div class="chart-wrap" style="height:180px"><canvas id="results-chart" role="img" aria-label="Final portfolio value history">Portfolio history.</canvas></div>
+  </div>
+  <div id="lessons-panel"></div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title">Trade log</div>
+    <div id="trade-log" style="font-size:12px;color:var(--color-text-secondary);max-height:160px;overflow-y:auto"></div>
+  </div>
+  <button class="btn-restart" onclick="restartGame()">Play again</button>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const STOCKS = [
+  {ticker:'NVTX',name:'NovaTech Systems',sector:'tech',sectorLabel:'Tech'},
+  {ticker:'CLUD',name:'CloudSphere Inc.',sector:'tech',sectorLabel:'Tech'},
+  {ticker:'PETX',name:'PetroMax Corp.',sector:'energy',sectorLabel:'Energy'},
+  {ticker:'SOLR',name:'SolarRise Energy',sector:'energy',sectorLabel:'Energy'},
+  {ticker:'MDRX',name:'MedCore Health',sector:'health',sectorLabel:'Health'},
+  {ticker:'BIOVX',name:'BioVax Sciences',sector:'health',sectorLabel:'Health'},
+  {ticker:'GRCR',name:'GrocerFirst Co.',sector:'consumer',sectorLabel:'Consumer'},
+  {ticker:'LUXE',name:'LuxBrand Group',sector:'consumer',sectorLabel:'Consumer'},
+  {ticker:'BNKR',name:'Cornerstone Bank',sector:'finance',sectorLabel:'Finance'},
+  {ticker:'INVST',name:'Apex Capital',sector:'finance',sectorLabel:'Finance'},
+];
+
+const QUARTERS = [
+  {name:'Expansion',desc:'The economy is growing. Consumer spending up. Low unemployment.',
+   news:['Consumer confidence hits 3-year high','Unemployment falls to 3.8%','Fed holds rates steady'],
+   returns:{tech:0.11,energy:0.06,health:0.05,consumer:0.12,finance:0.08},noise:0.06},
+  {name:'Tech boom',desc:'A surge in AI and software investment drives tech stocks sharply higher.',
+   news:['AI investment hits record $200B','Cloud spending up 40% year-over-year','Tech IPO pipeline bursts open'],
+   returns:{tech:0.28,energy:-0.03,health:0.04,consumer:0.03,finance:0.06},noise:0.07},
+  {name:'Rate hike',desc:'The Fed raises interest rates by 0.75%. Borrowing costs spike.',
+   news:['Fed hikes rates to 5.25% — highest since 2007','Mortgage applications fall 18%','Banks see net interest margin widen'],
+   returns:{tech:-0.12,energy:0.04,health:0.03,consumer:-0.08,finance:0.14},noise:0.06},
+  {name:'Oil shock',desc:'Geopolitical tension cuts global oil supply. Energy prices surge.',
+   news:['Crude oil up 35% in six weeks','Airlines and trucking firms warn of margin squeeze','Renewable energy stocks rally on supply fears'],
+   returns:{tech:-0.05,energy:0.32,health:0.02,consumer:-0.11,finance:-0.03},noise:0.07},
+  {name:'Recession',desc:'GDP contracts for a second straight quarter. Markets reprice risk.',
+   news:['GDP falls 1.8% — recession confirmed','Layoffs climb across finance and tech sectors','Consumer spending drops for third month'],
+   returns:{tech:-0.18,energy:-0.14,health:0.08,consumer:-0.12,finance:-0.16},noise:0.08},
+  {name:'Recovery',desc:'Government stimulus and rate cuts spark a broad market rebound.',
+   news:['Fed cuts rates 0.5% — first cut in two years','Housing starts surge 22%','PMI index returns to expansion territory'],
+   returns:{tech:0.16,energy:0.09,health:0.07,consumer:0.14,finance:0.12},noise:0.06},
+  {name:'Pharma breakout',desc:'Two blockbuster drug approvals lift the healthcare sector.',
+   news:['FDA approves two major cancer drugs in one week','MedCore reports 40% revenue beat','Health insurance stocks rally on preventive care data'],
+   returns:{tech:0.05,energy:0.02,health:0.31,consumer:0.04,finance:0.05},noise:0.07},
+  {name:'Soft landing',desc:'Inflation cools, growth holds. Broad market gains.',
+   news:['CPI falls to 2.1% — near Fed target','Corporate earnings beat estimates for 7th straight quarter','Investor sentiment reaches 18-month high'],
+   returns:{tech:0.13,energy:0.07,health:0.09,consumer:0.11,finance:0.10},noise:0.05},
+];
+
+const PHASE_COLORS = {
+  'Expansion':'#EAF3DE','Tech boom':'#E6F1FB','Rate hike':'#FAEEDA',
+  'Oil shock':'#FAEEDA','Recession':'#FCEBEB','Recovery':'#EAF3DE',
+  'Pharma breakout':'#E1F5EE','Soft landing':'#E6F1FB'
+};
+const PHASE_TEXT = {
+  'Expansion':'#3B6D11','Tech boom':'#185FA5','Rate hike':'#854F0B',
+  'Oil shock':'#854F0B','Recession':'#A32D2D','Recovery':'#3B6D11',
+  'Pharma breakout':'#0F6E56','Soft landing':'#185FA5'
+};
+
+let state = {};
+let portfolioChart = null;
+let selectedStock = null;
+
+function initState(){
+  state = {
+    cash:10000,
+    holdings:{},
+    prices:{},
+    priceHistory:{},
+    quarterIdx:0,
+    portfolioHistory:[10000],
+    trades:[],
+    quartersDone:0,
+  };
+  STOCKS.forEach(s=>{
+    const base = 40 + Math.random()*60;
+    state.prices[s.ticker] = parseFloat(base.toFixed(2));
+    state.priceHistory[s.ticker] = [parseFloat(base.toFixed(2))];
+    state.holdings[s.ticker] = 0;
+  });
+}
+
+function portfolioValue(){
+  let v = state.cash;
+  STOCKS.forEach(s=>{ v += state.holdings[s.ticker] * state.prices[s.ticker]; });
+  return v;
+}
+
+function sectorsOwned(){
+  const sectors = new Set();
+  STOCKS.forEach(s=>{ if(state.holdings[s.ticker]>0) sectors.add(s.sector); });
+  return sectors.size;
+}
+
+function fmt(n){ return '$'+Math.round(n).toLocaleString(); }
+function fmtP(n){ return (n>=0?'+':'')+n.toFixed(1)+'%'; }
+
+function updateMetrics(){
+  const pv = portfolioValue();
+  const ret = ((pv-10000)/10000)*100;
+  document.getElementById('m-cash').textContent = fmt(state.cash);
+  document.getElementById('m-portfolio').textContent = fmt(pv);
+  const retEl = document.getElementById('m-return');
+  retEl.textContent = fmtP(ret);
+  retEl.className = 'metric-value '+(ret>=0?'up':'down');
+  const sd = sectorsOwned();
+  const dEl = document.getElementById('m-divers');
+  dEl.textContent = sd===0?'None':sd+'/5 sectors';
+  dEl.className = 'metric-value '+(sd>=3?'up':sd>=2?'':'down');
+}
+
+function renderStockList(){
+  const q = QUARTERS[state.quarterIdx];
+  let html = '';
+  STOCKS.forEach(s=>{
+    const prev = state.priceHistory[s.ticker].length>1 ? state.priceHistory[s.ticker][state.priceHistory[s.ticker].length-2] : state.prices[s.ticker];
+    const cur = state.prices[s.ticker];
+    const chg = ((cur-prev)/prev)*100;
+    const owned = state.holdings[s.ticker];
+    const sClass = 'sector-tag-'+s.sector;
+    const mini = buildMini(s.ticker);
+    html += `<div class="stock-row" onclick="selectStock('${s.ticker}')">
+      <span class="stock-ticker">${s.ticker}</span>
+      <span class="stock-name">${s.name}</span>
+      <span class="stock-sector ${sClass}">${s.sectorLabel}</span>
+      ${owned>0?`<span class="owned-badge">${owned}sh</span>`:''}
+      <span style="width:44px;height:24px;display:inline-block">${mini}</span>
+      <span class="stock-price">$${cur.toFixed(2)}</span>
+      <span class="stock-chg" style="color:${chg>=0?'#3B6D11':'#A32D2D'}">${fmtP(chg)}</span>
+    </div>`;
+  });
+  document.getElementById('stock-list').innerHTML = html;
+}
+
+function buildMini(ticker){
+  const hist = state.priceHistory[ticker];
+  if(hist.length<2) return '';
+  const w=44,h=24,pad=2;
+  const mn=Math.min(...hist),mx=Math.max(...hist);
+  const range=mx-mn||1;
+  const pts=hist.map((v,i)=>{
+    const x=pad+(i/(hist.length-1||1))*(w-pad*2);
+    const y=h-pad-((v-mn)/range)*(h-pad*2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const last=hist[hist.length-1],first=hist[0];
+  const col=last>=first?'#3B6D11':'#A32D2D';
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5"/></svg>`;
+}
+
+function selectStock(ticker){
+  selectedStock = ticker;
+  const s = STOCKS.find(x=>x.ticker===ticker);
+  const price = state.prices[ticker];
+  const owned = state.holdings[ticker];
+  const maxBuy = Math.floor(state.cash/price);
+  const sClass = 'sector-tag-'+s.sector;
+  document.getElementById('trade-panel').innerHTML = `
+    <div class="selected-stock">${s.ticker} &mdash; $${price.toFixed(2)}</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">${s.name} <span class="stock-sector ${sClass}" style="margin-left:4px">${s.sectorLabel}</span></div>
+    <div class="qty-row" style="margin-bottom:6px">
+      <label>Shares:</label>
+      <input type="number" id="qty-input" min="1" step="1" value="1" oninput="updateTradeCost()">
+      <span style="font-size:12px;color:var(--color-text-secondary)">max ${maxBuy}</span>
+    </div>
+    <div class="trade-cost" id="trade-cost">Cost: $${price.toFixed(2)}</div>
+    <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+      <button class="btn-buy" onclick="executeTrade('buy')">Buy shares</button>
+      ${owned>0?`<button class="btn-sell-s" onclick="executeTrade('sell')">Sell (own ${owned})</button>`:''}
+    </div>`;
+  renderStockList();
+  flash(`Selected ${ticker} at $${price.toFixed(2)}. You can afford up to ${maxBuy} shares.`);
+}
+
+function updateTradeCost(){
+  if(!selectedStock) return;
+  const qty = parseInt(document.getElementById('qty-input').value)||1;
+  const price = state.prices[selectedStock];
+  document.getElementById('trade-cost').textContent = 'Cost: '+fmt(qty*price)+' | You have: '+fmt(state.cash);
+}
+
+function executeTrade(action){
+  if(!selectedStock) return;
+  const qty = parseInt(document.getElementById('qty-input').value)||0;
+  if(qty<1){ flash('Enter a valid quantity.'); return; }
+  const price = state.prices[selectedStock];
+  const s = STOCKS.find(x=>x.ticker===selectedStock);
+  if(action==='buy'){
+    const cost = qty*price;
+    if(cost>state.cash){ flash('Not enough cash. You have '+fmt(state.cash)+'.'); return; }
+    state.cash -= cost;
+    state.holdings[selectedStock] += qty;
+    state.trades.push({q:state.quarterIdx+1,action:'Buy',ticker:selectedStock,qty,price:price.toFixed(2),total:cost.toFixed(2)});
+    flash(`Bought ${qty} shares of ${selectedStock} at $${price.toFixed(2)}. Spent ${fmt(cost)}.`);
+  } else {
+    const owned = state.holdings[selectedStock];
+    if(qty>owned){ flash(`You only own ${owned} shares of ${selectedStock}.`); return; }
+    const proceeds = qty*price;
+    state.cash += proceeds;
+    state.holdings[selectedStock] -= qty;
+    state.trades.push({q:state.quarterIdx+1,action:'Sell',ticker:selectedStock,qty,price:price.toFixed(2),total:proceeds.toFixed(2)});
+    flash(`Sold ${qty} shares of ${selectedStock} at $${price.toFixed(2)}. Received ${fmt(proceeds)}.`);
+  }
+  updateMetrics();
+  selectStock(selectedStock);
+  renderHoldings();
+  updatePortfolioChart();
+}
+
+function flash(msg){ document.getElementById('flash-msg').textContent = msg; }
+
+function renderHoldings(){
+  const rows = STOCKS.filter(s=>state.holdings[s.ticker]>0);
+  if(!rows.length){ document.getElementById('holdings-panel').innerHTML='<div style="font-size:13px;color:var(--color-text-secondary)">No positions yet.</div>'; return; }
+  let html = '<table class="holdings-table"><tr style="font-size:11px;color:var(--color-text-secondary)"><td>Stock</td><td style="text-align:right">Shares</td><td style="text-align:right">Price</td><td style="text-align:right">Value</td><td style="text-align:right">Sector</td></tr>';
+  rows.forEach(s=>{
+    const val = state.holdings[s.ticker]*state.prices[s.ticker];
+    html+=`<tr><td style="font-weight:500">${s.ticker}</td><td style="text-align:right">${state.holdings[s.ticker]}</td><td style="text-align:right">$${state.prices[s.ticker].toFixed(2)}</td><td style="text-align:right">${fmt(val)}</td><td style="text-align:right;font-size:11px;color:var(--color-text-secondary)">${s.sectorLabel}</td></tr>`;
+  });
+  html+='</table>';
+  document.getElementById('holdings-panel').innerHTML = html;
+}
+
+function renderNews(){
+  const q = QUARTERS[state.quarterIdx];
+  let html = '';
+  q.news.forEach(n=>{ html+=`<div class="news-item">${n}</div>`; });
+  document.getElementById('news-panel').innerHTML = html;
+}
+
+function renderPhaseBadge(){
+  const q = QUARTERS[state.quarterIdx];
+  const bg = PHASE_COLORS[q.name]||'#F1EFE8';
+  const tc = PHASE_TEXT[q.name]||'#5F5E5A';
+  document.getElementById('phase-badge').innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${tc};display:inline-block"></span><span style="font-weight:500;color:${tc}">${q.name}</span>`;
+  document.getElementById('phase-badge').style.background = bg;
+}
+
+function advanceQuarter(){
+  const q = QUARTERS[state.quarterIdx];
+  STOCKS.forEach(s=>{
+    const base = q.returns[s.sector];
+    const noise = (Math.random()-0.5)*2*q.noise;
+    const r = base + noise;
+    const newPrice = Math.max(1, state.prices[s.ticker]*(1+r));
+    state.prices[s.ticker] = parseFloat(newPrice.toFixed(2));
+    state.priceHistory[s.ticker].push(parseFloat(newPrice.toFixed(2)));
+  });
+  state.portfolioHistory.push(parseFloat(portfolioValue().toFixed(2)));
+  state.quarterIdx++;
+  state.quartersDone++;
+  updatePortfolioChart();
+  if(state.quarterIdx>=8){ showResults(); return; }
+  document.getElementById('q-num').textContent = state.quarterIdx+1;
+  document.getElementById('progress-fill').style.width = ((state.quarterIdx+1)/8*100)+'%';
+  selectedStock = null;
+  document.getElementById('trade-panel').innerHTML = '<div style="font-size:13px;color:var(--color-text-secondary)">Select a stock to trade.</div>';
+  renderPhaseBadge();
+  renderNews();
+  renderStockList();
+  renderHoldings();
+  updateMetrics();
+  flash('Quarter '+(state.quarterIdx)+' complete. New prices are in — review the news and trade.');
+}
+
+let chartInst = null;
+function updatePortfolioChart(){
+  const labels = state.portfolioHistory.map((_,i)=>i===0?'Start':'Q'+i);
+  const data = state.portfolioHistory;
+  const ctx = document.getElementById('portfolio-chart').getContext('2d');
+  if(chartInst){ chartInst.data.labels=labels; chartInst.data.datasets[0].data=data; chartInst.update(); return; }
+  chartInst = new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:'Portfolio',data,borderColor:'#185FA5',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:'#185FA5',tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'$'+Math.round(v/1000)+'k'},grid:{color:'rgba(128,128,128,0.1)'}},x:{grid:{display:false}}}}
+  });
+}
+
+function showResults(){
+  document.getElementById('screen-game').classList.remove('active');
+  document.getElementById('screen-results').classList.add('active');
+  const final = portfolioValue();
+  const ret = ((final-10000)/10000)*100;
+  const spRet = 14.0;
+  const vssp = ret-spRet;
+  document.getElementById('r-final').textContent = fmt(final);
+  document.getElementById('r-final').className = 'metric-value '+(final>=10000?'up':'down');
+  document.getElementById('r-return').textContent = fmtP(ret);
+  document.getElementById('r-return').className = 'metric-value '+(ret>=0?'up':'down');
+  document.getElementById('r-vs-sp').textContent = (vssp>=0?'+':'')+vssp.toFixed(1)+'%';
+  document.getElementById('r-vs-sp').className = 'metric-value '+(vssp>=0?'up':'down');
+
+  const rctx = document.getElementById('results-chart').getContext('2d');
+  const labels = state.portfolioHistory.map((_,i)=>i===0?'Start':'Q'+i);
+  const spLine = state.portfolioHistory.map((_,i)=>Math.round(10000*(1+spRet/100/8*i)));
+  new Chart(rctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Your portfolio',data:state.portfolioHistory,borderColor:'#185FA5',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:'#185FA5',tension:0.3,borderDash:[]},
+      {label:'S&P 500 benchmark',data:spLine,borderColor:'#888780',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.3,borderDash:[4,4]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'$'+Math.round(v/1000)+'k'},grid:{color:'rgba(128,128,128,0.1)'}},x:{grid:{display:false}}}}
+  });
+
+  const sd = sectorsOwned();
+  let lessons = '';
+  const bestPhase = QUARTERS.reduce((best,q)=>{ const k=Object.keys(q.returns).reduce((a,b)=>q.returns[a]>q.returns[b]?a:b); return best; },'');
+  lessons += `<div class="lesson-box"><h3>Diversification</h3><p>You held stocks across ${sd===0?'0 (no positions)':sd} sector${sd!==1?'s':''} at peak. ${sd>=3?'Spreading across sectors cushions the blow when one sector crashes — as you may have seen during the Recession quarter.':'Concentrating in fewer sectors means higher risk. When that sector dips, your whole portfolio hurts.'}</p></div>`;
+  lessons += `<div class="lesson-box"><h3>Sector rotation</h3><p>Different sectors lead in different cycles: Tech in booms, Energy in oil shocks, Healthcare in downturns, Finance during rate hikes. Investors who rotate into the right sector each quarter can significantly outperform.</p></div>`;
+  lessons += `<div class="lesson-box"><h3>Compound growth</h3><p>Starting at $10,000, a consistent ${fmtP(ret)} return compounded over 8 quarters leaves you with ${fmt(final)}. Small consistent gains each quarter beat one lucky bet — the math of compounding rewards patience.</p></div>`;
+  document.getElementById('lessons-panel').innerHTML = lessons;
+
+  let logHtml = '<table style="width:100%;border-collapse:collapse"><tr style="color:var(--color-text-tertiary)"><td>Q</td><td>Action</td><td>Ticker</td><td style="text-align:right">Shares</td><td style="text-align:right">Price</td><td style="text-align:right">Total</td></tr>';
+  if(state.trades.length===0){ logHtml+='<tr><td colspan="6" style="padding:8px 0;color:var(--color-text-secondary)">No trades made.</td></tr>'; }
+  state.trades.forEach(t=>{
+    const col = t.action==='Buy'?'#3B6D11':'#A32D2D';
+    logHtml+=`<tr style="border-top:0.5px solid var(--color-border-tertiary)"><td>${t.q}</td><td style="color:${col};font-weight:500">${t.action}</td><td>${t.ticker}</td><td style="text-align:right">${t.qty}</td><td style="text-align:right">$${t.price}</td><td style="text-align:right">$${parseFloat(t.total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`;
+  });
+  logHtml+='</table>';
+  document.getElementById('trade-log').innerHTML = logHtml;
+}
+
+function startGame(){
+  initState();
+  document.getElementById('screen-intro').classList.remove('active');
+  document.getElementById('screen-game').classList.add('active');
+  document.getElementById('q-num').textContent = '1';
+  document.getElementById('progress-fill').style.width = '12.5%';
+  renderPhaseBadge();
+  renderNews();
+  renderStockList();
+  renderHoldings();
+  updateMetrics();
+  updatePortfolioChart();
+}
+
+function restartGame(){
+  chartInst = null;
+  selectedStock = null;
+  document.getElementById('screen-results').classList.remove('active');
+  document.getElementById('screen-intro').classList.add('active');
+}
+</script>
